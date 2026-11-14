@@ -6,7 +6,7 @@ class AccountInfo {
   final String userId;
   final String username;
   final String? displayName; // global_name from Discord API, may be null.
-  final String? avatarUrl;   // null if user has no custom avatar.
+  final String? avatarUrl; // null if user has no custom avatar.
 
   const AccountInfo({
     required this.userId,

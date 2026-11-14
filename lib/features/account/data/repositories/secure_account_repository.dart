@@ -7,8 +7,10 @@
 // Token is NEVER logged, printed, or stored until validation succeeds.
 
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import '../../domain/entities/account_info.dart';
 import '../../domain/repositories/account_repository.dart';
 
@@ -20,11 +22,9 @@ class SecureAccountRepository implements AccountRepository {
   final FlutterSecureStorage _storage;
   final http.Client _client;
 
-  SecureAccountRepository({
-    FlutterSecureStorage? storage,
-    http.Client? client,
-  })  : _storage = storage ?? const FlutterSecureStorage(),
-        _client = client ?? http.Client();
+  SecureAccountRepository({FlutterSecureStorage? storage, http.Client? client})
+    : _storage = storage ?? const FlutterSecureStorage(),
+      _client = client ?? http.Client();
 
   /// Calls GET /users/@me with the given token.
   /// Saves the token only if the call returns HTTP 200.
@@ -35,13 +35,15 @@ class SecureAccountRepository implements AccountRepository {
     final http.Response response;
 
     try {
-      response = await _client.get(
-        uri,
-        headers: {
-          'Authorization': token,
-          'Content-Type': 'application/json',
-        },
-      ).timeout(const Duration(seconds: 10));
+      response = await _client
+          .get(
+            uri,
+            headers: {
+              'Authorization': token,
+              'Content-Type': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
     } catch (e) {
       throw const AccountAuthException(
         'Could not reach Discord. Check your internet connection.',

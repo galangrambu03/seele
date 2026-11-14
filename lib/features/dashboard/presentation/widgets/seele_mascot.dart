@@ -1,5 +1,7 @@
 import 'dart:math' as math;
+
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 
 enum MascotExpression { happy, cheering, curious }
@@ -21,9 +23,7 @@ class SeeleMascot extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _SeeleMascotPainter(expression: expression),
-      ),
+      child: CustomPaint(painter: _SeeleMascotPainter(expression: expression)),
     );
   }
 }
@@ -83,11 +83,7 @@ class _SeeleMascotPainter extends CustomPainter {
 
     // 3. Main body (Cute rounded blob)
     final bodyRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: center,
-        width: w * 0.68,
-        height: h * 0.64,
-      ),
+      Rect.fromCenter(center: center, width: w * 0.68, height: h * 0.64),
       Radius.circular(w * 0.32),
     );
 
@@ -110,10 +106,7 @@ class _SeeleMascotPainter extends CustomPainter {
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [
-          Color(0xFF2E486D),
-          Color(0xFF1E324E),
-        ],
+        colors: [Color(0xFF2E486D), Color(0xFF1E324E)],
       ).createShader(bodyRect.outerRect);
     canvas.drawRRect(bodyRect, bodyPaint);
 

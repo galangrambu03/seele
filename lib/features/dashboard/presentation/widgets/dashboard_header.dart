@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
 
@@ -144,10 +145,7 @@ class DashboardHeader extends StatelessWidget {
                           ),
                         ),
                       ),
-                      icon: const Icon(
-                        Icons.notifications_outlined,
-                        size: 21,
-                      ),
+                      icon: const Icon(Icons.notifications_outlined, size: 21),
                     ),
                     Positioned(
                       top: 10,
@@ -180,10 +178,7 @@ class DashboardHeader extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: AppColor.surfaceHighlight,
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(
-                          color: AppColor.lime,
-                          width: 2,
-                        ),
+                        border: Border.all(color: AppColor.lime, width: 2),
                         boxShadow: const [
                           BoxShadow(
                             color: AppColor.limeDark,

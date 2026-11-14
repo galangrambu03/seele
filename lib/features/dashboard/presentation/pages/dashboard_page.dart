@@ -1,21 +1,23 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
+import '../../../../core/session/account_session.dart';
 import '../../../quests/presentation/pages/quests_page.dart';
-import '../widgets/dashboard_bottom_nav.dart';
-import '../widgets/dashboard_header.dart';
-import '../widgets/dashboard_sidebar.dart';
-import '../widgets/orbs_card.dart';
-import '../widgets/progress_card.dart';
-import '../widgets/quest_section.dart';
+import '../../../quests/data/repositories/mock_quest_repository.dart';
 import '../../../account/presentation/pages/account_page.dart';
+import '../widgets/dashboard_bottom_nav.dart';
+import '../widgets/dashboard_sidebar.dart';
+import '../widgets/quest_section.dart';
 
 class DashboardPage extends StatefulWidget {
   final int initialNavIndex;
+  final AccountSession accountSession;
 
   const DashboardPage({
     super.key,
     this.initialNavIndex = 0,
+    required this.accountSession,
   });
 
   @override
@@ -23,6 +25,7 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  final _questRepository = MockQuestRepository();
   late int _currentNavIndex;
 
   @override
@@ -33,116 +36,109 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isDesktop = constraints.maxWidth >= 960;
+    return ListenableBuilder(
+      listenable: widget.accountSession,
+      builder: (context, child) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isDesktop = constraints.maxWidth >= 960;
 
-        return Scaffold(
-          backgroundColor: AppColor.background,
-          bottomNavigationBar: isDesktop
-              ? null
-              : DashboardBottomNav(
-                  currentIndex: _currentNavIndex,
-                  onTap: (index) => setState(() => _currentNavIndex = index),
-                ),
-          body: Row(
-            children: [
-              // Desktop Sidebar
-              if (isDesktop)
-                DashboardSidebar(
-                  selectedIndex: _currentNavIndex,
-                  onDestinationSelected: (index) =>
-                      setState(() => _currentNavIndex = index),
-                ),
+            final username =
+                widget.accountSession.accountInfo?.effectiveDisplayName ??
+                'Guest';
 
-              // Main Content Area (Switches based on selected nav tab)
-              Expanded(
-                child: _currentNavIndex == 1
-                    ? QuestsPage(
-                        embedded: true,
-                        onNavigate: (index) => setState(() => _currentNavIndex = index),
-                      )
-                    : _currentNavIndex == 5
-                        ? const AccountPage()
+            return Scaffold(
+              backgroundColor: AppColor.background,
+              bottomNavigationBar: isDesktop
+                  ? null
+                  : DashboardBottomNav(
+                      currentIndex: _currentNavIndex,
+                      onTap: (index) {
+                        setState(() => _currentNavIndex = index);
+                      },
+                    ),
+              body: Row(
+                children: [
+                  if (isDesktop)
+                    DashboardSidebar(
+                      accountSession: widget.accountSession,
+                      selectedIndex: _currentNavIndex,
+                      onDestinationSelected: (index) {
+                        setState(() => _currentNavIndex = index);
+                      },
+                    ),
+
+                  Expanded(
+                    child: _currentNavIndex == 1
+                        ? QuestsPage(
+                            repository: _questRepository,
+                            embedded: true,
+                            onNavigate: (index) {
+                              setState(() => _currentNavIndex = index);
+                            },
+                          )
+                        : _currentNavIndex == 5
+                        ? AccountPage(accountSession: widget.accountSession)
                         : SafeArea(
                             child: SingleChildScrollView(
-                          padding: EdgeInsets.symmetric(
-                            horizontal:
-                                isDesktop ? AppSpacing.xl : AppSpacing.md,
-                            vertical: AppSpacing.lg,
-                          ),
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(
-                                maxWidth: 1100,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isDesktop
+                                    ? AppSpacing.xl
+                                    : AppSpacing.md,
+                                vertical: AppSpacing.lg,
                               ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // 1. User Profile & Welcome Header
-                                  const DashboardHeader(
-                                    username: 'StarGazer',
-                                    userLevel: 8,
-                                    streakDays: 5,
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 1100,
                                   ),
-
-                                  const SizedBox(height: AppSpacing.xl),
-
-                                  // 2. Daily Progress & Discord Orbs Balance
-                                  if (isDesktop)
-                                    const Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          flex: 3,
-                                          child: ProgressCard(
-                                            completedQuests: 3,
-                                            totalQuests: 5,
-                                            streakDays: 5,
-                                          ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Dashboard',
+                                        style: const TextStyle(
+                                          color: AppColor.textPrimary,
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.w900,
                                         ),
-                                        SizedBox(width: AppSpacing.md),
-                                        Expanded(
-                                          flex: 2,
-                                          child: OrbsCard(
-                                            balance: 1250,
-                                            earnedToday: 150,
-                                          ),
+                                      ),
+
+                                      const SizedBox(height: AppSpacing.xs),
+
+                                      Text(
+                                        'Welcome back, $username!',
+                                        style: const TextStyle(
+                                          color: AppColor.textSecondary,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
                                         ),
-                                      ],
-                                    )
-                                  else ...[
-                                    const ProgressCard(
-                                      completedQuests: 3,
-                                      totalQuests: 5,
-                                      streakDays: 5,
-                                    ),
-                                    const SizedBox(height: AppSpacing.md),
-                                    const OrbsCard(
-                                      balance: 1250,
-                                      earnedToday: 150,
-                                    ),
-                                  ],
+                                      ),
 
-                                  const SizedBox(height: AppSpacing.xxl),
+                                      const SizedBox(height: AppSpacing.xxl),
 
-                                  // 3. Quest Section with Filters & Responsive Grid
-                                  QuestSection(
-                                    onViewAll: () =>
-                                        setState(() => _currentNavIndex = 1),
+                                      QuestSection(
+                                        repository: _questRepository,
+                                        onViewAll: () {
+                                          setState(() {
+                                            _currentNavIndex = 1;
+                                          });
+                                        },
+                                      ),
+
+                                      const SizedBox(height: AppSpacing.xxl),
+                                    ],
                                   ),
-
-                                  const SizedBox(height: AppSpacing.xxl),
-                                ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

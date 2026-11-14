@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
 import 'seele_mascot.dart';
@@ -18,7 +19,6 @@ class ProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = totalQuests > 0 ? completedQuests / totalQuests : 0.0;
-    final remaining = totalQuests - completedQuests;
 
     return Container(
       width: double.infinity,
@@ -26,10 +26,7 @@ class ProgressCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColor.surface,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(
-          color: AppColor.cardBorder,
-          width: 1.5,
-        ),
+        border: Border.all(color: AppColor.cardBorder, width: 1.5),
         boxShadow: const [
           BoxShadow(
             color: Color(0xFF111C2D),
@@ -176,8 +173,9 @@ class ProgressCard extends StatelessWidget {
                                     height: 12,
                                     decoration: BoxDecoration(
                                       color: AppColor.surfaceLight,
-                                      borderRadius:
-                                          BorderRadius.circular(AppRadius.pill),
+                                      borderRadius: BorderRadius.circular(
+                                        AppRadius.pill,
+                                      ),
                                       border: Border.all(
                                         color: AppColor.cardBorder,
                                         width: 1,
@@ -191,8 +189,9 @@ class ProgressCard extends StatelessWidget {
                                     height: 12,
                                     decoration: BoxDecoration(
                                       color: AppColor.lime,
-                                      borderRadius:
-                                          BorderRadius.circular(AppRadius.pill),
+                                      borderRadius: BorderRadius.circular(
+                                        AppRadius.pill,
+                                      ),
                                       boxShadow: const [
                                         BoxShadow(
                                           color: AppColor.limeDark,
@@ -210,23 +209,22 @@ class ProgressCard extends StatelessWidget {
                                     child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceEvenly,
-                                      children: List.generate(
-                                        totalQuests,
-                                        (index) {
-                                          final isPassed =
-                                              index < completedQuests;
-                                          return Container(
-                                            width: 4,
-                                            height: 4,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: isPassed
-                                                  ? AppColor.background
-                                                  : AppColor.cardBorder,
-                                            ),
-                                          );
-                                        },
-                                      ),
+                                      children: List.generate(totalQuests, (
+                                        index,
+                                      ) {
+                                        final isPassed =
+                                            index < completedQuests;
+                                        return Container(
+                                          width: 4,
+                                          height: 4,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: isPassed
+                                                ? AppColor.background
+                                                : AppColor.cardBorder,
+                                          ),
+                                        );
+                                      }),
                                     ),
                                   ),
                                 ],
@@ -244,11 +242,13 @@ class ProgressCard extends StatelessWidget {
                                     ),
                                     decoration: BoxDecoration(
                                       color: AppColor.surfaceLight,
-                                      borderRadius:
-                                          BorderRadius.circular(AppRadius.pill),
+                                      borderRadius: BorderRadius.circular(
+                                        AppRadius.pill,
+                                      ),
                                       border: Border.all(
-                                        color: AppColor.amber
-                                            .withValues(alpha: 0.35),
+                                        color: AppColor.amber.withValues(
+                                          alpha: 0.35,
+                                        ),
                                         width: 1,
                                       ),
                                     ),

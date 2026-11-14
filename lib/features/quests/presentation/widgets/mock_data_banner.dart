@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
 
@@ -7,7 +8,8 @@ class MockDataBanner extends StatelessWidget {
 
   const MockDataBanner({
     super.key,
-    this.label = 'Simulated Mock Data • Discord Gateway API Integration Pending',
+    this.label =
+        'Simulated Mock Data • Discord Gateway API Integration Pending',
   });
 
   @override
@@ -61,11 +63,7 @@ class MockDataBanner extends StatelessWidget {
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.circle,
-                  size: 6,
-                  color: AppColor.amber,
-                ),
+                Icon(Icons.circle, size: 6, color: AppColor.amber),
                 SizedBox(width: 4),
                 Text(
                   'DEMO',

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
 import 'discord_orb_icon.dart';
@@ -7,11 +8,7 @@ class DashboardBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int>? onTap;
 
-  const DashboardBottomNav({
-    super.key,
-    this.currentIndex = 0,
-    this.onTap,
-  });
+  const DashboardBottomNav({super.key, this.currentIndex = 0, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +16,7 @@ class DashboardBottomNav extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColor.surface,
         border: const Border(
-          top: BorderSide(
-            color: AppColor.cardBorder,
-            width: 1.5,
-          ),
+          top: BorderSide(color: AppColor.cardBorder, width: 1.5),
         ),
         boxShadow: [
           BoxShadow(
@@ -94,10 +88,7 @@ class _BottomNavItem extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 4,
-            vertical: 4,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           decoration: BoxDecoration(
             color: selected
                 ? AppColor.lime.withValues(alpha: 0.15)

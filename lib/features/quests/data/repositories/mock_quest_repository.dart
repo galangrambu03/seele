@@ -1,17 +1,52 @@
 import '../../domain/entities/quest_entity.dart';
 import '../../domain/repositories/quest_repository.dart';
 
-class MockQuestRepository implements QuestRepository {
+class MockQuestRepository extends QuestRepository {
   final List<Quest> _quests;
 
   MockQuestRepository({List<Quest>? customQuests})
-      : _quests = customQuests ?? _defaultMockQuests;
+    : _quests = List<Quest>.of(customQuests ?? _defaultMockQuests);
+
+  void updateProgress(String questId, int completedSeconds) {
+    final index = _quests.indexWhere((quest) => quest.id == questId);
+    if (index == -1) return;
+
+    final current = _quests[index];
+    final target = current.targetSeconds;
+
+    if (target == null || target <= 0) return;
+
+    final updatedSeconds = completedSeconds.clamp(0, target);
+    final updatedProgress = updatedSeconds / target;
+    final updatedStatus = updatedProgress >= 1.0
+        ? QuestStatus.completed
+        : QuestStatus.inProgress;
+
+    _quests[index] = Quest(
+      id: current.id,
+      title: current.title,
+      description: current.description,
+      category: current.category,
+      status: updatedStatus,
+      rewardOrbs: current.rewardOrbs,
+      duration: current.duration,
+      progress: updatedProgress,
+      requirements: current.requirements,
+      taskType: current.taskType,
+      targetSeconds: target,
+      completedSeconds: updatedSeconds,
+      taskMetadata: current.taskMetadata,
+    );
+
+    notifyListeners();
+  }
 
   @override
   bool get isMockDataSource => true;
 
   @override
-  String get dataSourceLabel => 'Simulated Mock Data • Discord Gateway API Pending';
+  String get dataSourceLabel =>
+      'Simulated Mock Data • Discord Gateway API Pending';
 
   @override
   List<Quest> getAllQuests() {
@@ -46,7 +81,8 @@ class MockQuestRepository implements QuestRepository {
     Quest(
       id: 'q1',
       title: 'Watch Devstream Episode #4',
-      description: 'Tune in to the special community developer showcase for 15 minutes.',
+      description:
+          'Tune in to the special community developer showcase for 15 minutes.',
       category: QuestCategory.video,
       status: QuestStatus.available,
       rewardOrbs: 150,
@@ -121,7 +157,8 @@ class MockQuestRepository implements QuestRepository {
     Quest(
       id: 'q6',
       title: 'Watch Championship Highlights',
-      description: 'Catch the top plays from the Discord Community Invitational.',
+      description:
+          'Catch the top plays from the Discord Community Invitational.',
       category: QuestCategory.video,
       status: QuestStatus.completed,
       rewardOrbs: 120,

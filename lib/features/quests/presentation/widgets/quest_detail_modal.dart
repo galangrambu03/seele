@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
 import '../../../dashboard/presentation/widgets/discord_orb_icon.dart';
@@ -25,7 +26,10 @@ class QuestDetailModal extends StatelessWidget {
         builder: (context) {
           return Dialog(
             backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 24,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 580),
               child: QuestDetailModal(quest: quest),
@@ -64,10 +68,7 @@ class QuestDetailModal extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColor.surface,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(
-          color: AppColor.cardBorder,
-          width: 1.5,
-        ),
+        border: Border.all(color: AppColor.cardBorder, width: 1.5),
         boxShadow: const [
           BoxShadow(
             color: Color(0xFF0C1624),
@@ -97,7 +98,9 @@ class QuestDetailModal extends StatelessWidget {
                       color: quest.category.accentColor.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(AppRadius.xs),
                       border: Border.all(
-                        color: quest.category.accentColor.withValues(alpha: 0.4),
+                        color: quest.category.accentColor.withValues(
+                          alpha: 0.4,
+                        ),
                         width: 1,
                       ),
                     ),
@@ -182,10 +185,7 @@ class QuestDetailModal extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColor.background,
                   borderRadius: BorderRadius.circular(AppRadius.lg),
-                  border: Border.all(
-                    color: AppColor.cardBorder,
-                    width: 1.2,
-                  ),
+                  border: Border.all(color: AppColor.cardBorder, width: 1.2),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,10 +382,7 @@ class QuestDetailModal extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColor.background,
                     borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(
-                      color: AppColor.cardBorder,
-                      width: 1,
-                    ),
+                    border: Border.all(color: AppColor.cardBorder, width: 1),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -508,7 +505,9 @@ class QuestDetailModal extends StatelessWidget {
                             ),
                           )
                         : TactileButton(
-                            label: quest.isInProgress ? 'Resume Quest' : 'Start Quest Now',
+                            label: quest.isInProgress
+                                ? 'Resume Quest'
+                                : 'Start Quest Now',
                             color: _buttonTactileColor,
                             fullWidth: true,
                             height: 44,

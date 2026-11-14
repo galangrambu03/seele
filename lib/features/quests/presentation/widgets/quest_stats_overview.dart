@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
 
@@ -197,10 +198,7 @@ class _StatCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColor.surface,
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(
-              color: AppColor.cardBorder,
-              width: 1.5,
-            ),
+            border: Border.all(color: AppColor.cardBorder, width: 1.5),
             boxShadow: const [
               BoxShadow(
                 color: Color(0xFF111C2D),
@@ -218,11 +216,7 @@ class _StatCard extends StatelessWidget {
                   color: accentColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: accentColor,
-                ),
+                child: Icon(icon, size: 20, color: accentColor),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(

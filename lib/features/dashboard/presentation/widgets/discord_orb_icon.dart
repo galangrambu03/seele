@@ -1,5 +1,7 @@
 import 'dart:math' as math;
+
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 
 /// A custom-rendered Discord Orb icon featuring glowing multi-faceted crystal geometry.
@@ -7,20 +9,14 @@ class DiscordOrbIcon extends StatelessWidget {
   final double size;
   final bool glowing;
 
-  const DiscordOrbIcon({
-    super.key,
-    this.size = 24,
-    this.glowing = false,
-  });
+  const DiscordOrbIcon({super.key, this.size = 24, this.glowing = false});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _DiscordOrbPainter(glowing: glowing),
-      ),
+      child: CustomPaint(painter: _DiscordOrbPainter(glowing: glowing)),
     );
   }
 }
@@ -54,7 +50,11 @@ class _DiscordOrbPainter extends CustomPainter {
     final shadowPaint = Paint()
       ..color = AppColor.lavenderDark.withValues(alpha: 0.5)
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(center.dx, center.dy + h * 0.05), radius, shadowPaint);
+    canvas.drawCircle(
+      Offset(center.dx, center.dy + h * 0.05),
+      radius,
+      shadowPaint,
+    );
 
     // Outer Orb Sphere with Gradient
     final sphereRect = Rect.fromCircle(center: center, radius: radius);
@@ -82,10 +82,7 @@ class _DiscordOrbPainter extends CustomPainter {
       ..shader = const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          AppColor.cyan,
-          AppColor.lavender,
-        ],
+        colors: [AppColor.cyan, AppColor.lavender],
       ).createShader(sphereRect);
     canvas.drawPath(innerPath, corePaint);
 
@@ -103,10 +100,20 @@ class _DiscordOrbPainter extends CustomPainter {
     final sparklePaint = Paint()
       ..color = AppColor.amber
       ..style = PaintingStyle.fill;
-    _drawMiniSparkle(canvas, Offset(w * 0.82, h * 0.22), w * 0.12, sparklePaint);
+    _drawMiniSparkle(
+      canvas,
+      Offset(w * 0.82, h * 0.22),
+      w * 0.12,
+      sparklePaint,
+    );
   }
 
-  void _drawMiniSparkle(Canvas canvas, Offset center, double radius, Paint paint) {
+  void _drawMiniSparkle(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    Paint paint,
+  ) {
     final path = Path();
     for (int i = 0; i < 4; i++) {
       final angle = i * math.pi / 2;

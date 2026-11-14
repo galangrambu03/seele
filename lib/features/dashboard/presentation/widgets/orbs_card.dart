@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
 import 'discord_orb_icon.dart';
@@ -136,10 +137,7 @@ class OrbsCard extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const DiscordOrbIcon(
-                      size: 64,
-                      glowing: true,
-                    ),
+                    const DiscordOrbIcon(size: 64, glowing: true),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
@@ -147,9 +145,9 @@ class OrbsCard extends StatelessWidget {
                         children: [
                           Text(
                             balance.toString().replaceAllMapped(
-                                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                                  (Match m) => '${m[1]},',
-                                ),
+                              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                              (Match m) => '${m[1]},',
+                            ),
                             style: const TextStyle(
                               color: AppColor.textPrimary,
                               fontSize: 42,

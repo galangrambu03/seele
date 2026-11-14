@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 
 enum QuestCategory {
@@ -60,6 +61,8 @@ enum QuestCategory {
   }
 }
 
+enum QuestTaskType { video, game, stream, activity }
+
 enum QuestStatus {
   available,
   inProgress,
@@ -99,6 +102,12 @@ class Quest {
   final double progress; // 0.0 to 1.0
   final List<String> requirements;
 
+  // Generic task tracking data
+  final QuestTaskType? taskType;
+  final int? targetSeconds;
+  final int completedSeconds;
+  final Map<String, dynamic> taskMetadata;
+
   const Quest({
     required this.id,
     required this.title,
@@ -109,7 +118,23 @@ class Quest {
     required this.duration,
     this.progress = 0.0,
     this.requirements = const [],
+    this.taskType,
+    this.targetSeconds,
+    this.completedSeconds = 0,
+    this.taskMetadata = const {},
   });
+
+  double get taskProgress {
+    if (targetSeconds == null || targetSeconds! <= 0) {
+      return progress;
+    }
+    return (completedSeconds / targetSeconds!).clamp(0.0, 1.0);
+  }
+
+  int get remainingSeconds {
+    if (targetSeconds == null) return 0;
+    return (targetSeconds! - completedSeconds).clamp(0, targetSeconds!);
+  }
 
   bool get isAvailable => status == QuestStatus.available;
   bool get isInProgress => status == QuestStatus.inProgress;

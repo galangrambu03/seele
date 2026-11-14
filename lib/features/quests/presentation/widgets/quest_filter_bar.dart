@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
 import '../../domain/entities/quest_entity.dart';
@@ -62,10 +63,7 @@ class QuestFilterBar extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColor.surface,
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(
-                  color: AppColor.cardBorder,
-                  width: 1.5,
-                ),
+                border: Border.all(color: AppColor.cardBorder, width: 1.5),
               ),
               child: TextField(
                 controller: searchController,
@@ -112,10 +110,7 @@ class QuestFilterBar extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColor.surface,
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(
-                  color: AppColor.cardBorder,
-                  width: 1.5,
-                ),
+                border: Border.all(color: AppColor.cardBorder, width: 1.5),
               ),
               child: PopupMenuButton<QuestSortOption>(
                 initialValue: selectedSort,
@@ -195,11 +190,7 @@ class QuestFilterBar extends StatelessWidget {
                 children: [
                   searchField,
                   const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: [
-                      Expanded(child: sortButton),
-                    ],
-                  ),
+                  Row(children: [Expanded(child: sortButton)]),
                 ],
               );
             }
@@ -302,10 +293,7 @@ class _FilterChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 140),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 7,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected ? selectedColor : AppColor.surface,
           borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -365,10 +353,7 @@ class _StatusPill extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 10,
-          vertical: 4,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           color: isSelected ? AppColor.surfaceLight : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.xs),

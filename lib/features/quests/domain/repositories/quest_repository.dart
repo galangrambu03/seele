@@ -1,6 +1,8 @@
+import "package:flutter/foundation.dart";
+
 import '../entities/quest_entity.dart';
 
-abstract class QuestRepository {
+abstract class QuestRepository extends ChangeNotifier {
   List<Quest> getAllQuests();
   Quest? getQuestById(String id);
   int getTotalQuestsCount();

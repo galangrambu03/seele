@@ -1,35 +1,25 @@
-// lib/features/account/presentation/pages/account_page.dart
-// UI for manual Discord token entry and account connection.
-
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
+import '../../../../core/session/account_session.dart';
 import '../../domain/entities/account_info.dart';
-import '../../domain/repositories/account_repository.dart';
-import '../../data/repositories/secure_account_repository.dart';
 
 class AccountPage extends StatefulWidget {
-  const AccountPage({super.key});
+  final AccountSession accountSession;
+
+  const AccountPage({super.key, required this.accountSession});
 
   @override
   State<AccountPage> createState() => _AccountPageState();
 }
 
-enum _ConnState { disconnected, connecting, connected, failed }
-
 class _AccountPageState extends State<AccountPage> {
-  final AccountRepository _repo = SecureAccountRepository();
   final _tokenController = TextEditingController();
-  bool _obscure = true;
-  _ConnState _state = _ConnState.disconnected;
-  AccountInfo? _accountInfo;
-  String? _errorMessage;
 
-  @override
-  void initState() {
-    super.initState();
-    _restoreSession();
-  }
+  bool _obscure = true;
+
+  AccountSession get _session => widget.accountSession;
 
   @override
   void dispose() {
@@ -37,81 +27,32 @@ class _AccountPageState extends State<AccountPage> {
     super.dispose();
   }
 
-  /// On startup: if a token was previously saved, re-validate it.
-  Future<void> _restoreSession() async {
-    final token = await _repo.getToken();
-    if (token == null || !mounted) return;
-    // Fill the field with masked placeholder (don't restore raw token to UI).
-    _tokenController.text = '••••••••••••••••';
-    // Re-validate silently.
-    await _validateAndConnect(token);
-  }
-
-  /// Connect: validate FIRST, save token only on success.
   Future<void> _connect() async {
-    if (!mounted) return;
     final token = _tokenController.text.trim();
-    if (token.isEmpty || token == '••••••••••••••••') {
-      setState(() {
-        _state = _ConnState.failed;
-        _errorMessage = 'Please paste your Discord token before connecting.';
-      });
-      return;
-    }
-    await _validateAndConnect(token);
-  }
 
-  Future<void> _validateAndConnect(String token) async {
+    await _session.connect(token);
+
     if (!mounted) return;
-    setState(() {
-      _state = _ConnState.connecting;
-      _errorMessage = null;
-    });
-    try {
-      final info = await _repo.validateAndFetch(token);
-      // Only save after successful validation.
-      await _repo.saveToken(token);
-      if (!mounted) return;
-      setState(() {
-        _accountInfo = info;
-        _state = _ConnState.connected;
-        _errorMessage = null;
-        // Clear the text field — token is now stored securely.
-        _tokenController.clear();
-      });
-    } on AccountAuthException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _state = _ConnState.failed;
-        _errorMessage = e.message;
-        _tokenController.clear();
-      });
-      // Clear any previously saved token so stale data isn't kept.
-      await _repo.clearToken();
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _state = _ConnState.failed;
-        _errorMessage = 'An unexpected error occurred. Please try again.';
-        _tokenController.clear();
-      });
-      await _repo.clearToken();
+
+    if (_session.isConnected) {
+      _tokenController.clear();
     }
   }
 
   Future<void> _disconnect() async {
-    await _repo.clearToken();
+    await _session.disconnect();
+
     if (!mounted) return;
-    setState(() {
-      _state = _ConnState.disconnected;
-      _accountInfo = null;
-      _errorMessage = null;
-      _tokenController.clear();
-    });
+
+    _tokenController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isConnected = _session.isConnected;
+    final isConnecting = _session.isConnecting;
+    final accountInfo = _session.accountInfo;
+
     return Scaffold(
       backgroundColor: AppColor.background,
       appBar: AppBar(
@@ -128,21 +69,17 @@ class _AccountPageState extends State<AccountPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Info banner — shown only when disconnected/failed
-              if (_state != _ConnState.connected) _buildInfoBanner(),
+              if (!isConnected) _buildInfoBanner(),
 
-              if (_state != _ConnState.connected)
+              if (!isConnected) const SizedBox(height: AppSpacing.xl),
+
+              if (isConnected && accountInfo != null)
+                _buildProfileCard(accountInfo),
+
+              if (isConnected && accountInfo != null)
                 const SizedBox(height: AppSpacing.xl),
 
-              // Profile card — shown only when connected
-              if (_state == _ConnState.connected && _accountInfo != null)
-                _buildProfileCard(),
-
-              if (_state == _ConnState.connected && _accountInfo != null)
-                const SizedBox(height: AppSpacing.xl),
-
-              // Token input — hidden when connected
-              if (_state != _ConnState.connected) ...[
+              if (!isConnected) ...[
                 const Text(
                   'Discord Token',
                   style: TextStyle(
@@ -155,7 +92,7 @@ class _AccountPageState extends State<AccountPage> {
                 TextField(
                   controller: _tokenController,
                   obscureText: _obscure,
-                  enabled: _state != _ConnState.connecting,
+                  enabled: !isConnecting,
                   style: const TextStyle(color: AppColor.textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Paste your token here',
@@ -173,44 +110,50 @@ class _AccountPageState extends State<AccountPage> {
                             : Icons.visibility_rounded,
                         color: AppColor.textMuted,
                       ),
-                      onPressed: () => setState(() => _obscure = !_obscure),
+                      onPressed: isConnecting
+                          ? null
+                          : () => setState(() {
+                              _obscure = !_obscure;
+                            }),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      borderSide:
-                          const BorderSide(color: AppColor.cardBorder),
+                      borderSide: const BorderSide(color: AppColor.cardBorder),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.md),
                       borderSide: const BorderSide(
-                          color: AppColor.cyan, width: 1.5),
+                        color: AppColor.cyan,
+                        width: 1.5,
+                      ),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.md),
                       borderSide: BorderSide(
-                          color: AppColor.cardBorder.withValues(alpha: 0.5)),
+                        color: AppColor.cardBorder.withValues(alpha: 0.5),
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
               ],
 
-              // Action buttons
               Row(
                 children: [
-                  if (_state != _ConnState.connected)
+                  if (!isConnected)
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColor.lime,
                         foregroundColor: AppColor.background,
-                        disabledBackgroundColor:
-                            AppColor.lime.withValues(alpha: 0.5),
+                        disabledBackgroundColor: AppColor.lime.withValues(
+                          alpha: 0.5,
+                        ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.lg,
                           vertical: AppSpacing.sm,
                         ),
                       ),
-                      icon: _state == _ConnState.connecting
+                      icon: isConnecting
                           ? const SizedBox(
                               width: 16,
                               height: 16,
@@ -220,18 +163,17 @@ class _AccountPageState extends State<AccountPage> {
                               ),
                             )
                           : const Icon(Icons.link_rounded),
-                      label: Text(_state == _ConnState.connecting
-                          ? 'Verifying...'
-                          : 'Connect'),
-                      onPressed:
-                          _state == _ConnState.connecting ? null : _connect,
+                      label: Text(isConnecting ? 'Verifying...' : 'Connect'),
+                      onPressed: isConnecting ? null : _connect,
                     ),
-                  if (_state == _ConnState.connected) ...[
+
+                  if (isConnected)
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColor.error,
-                        side:
-                            BorderSide(color: AppColor.error.withValues(alpha: 0.5)),
+                        side: BorderSide(
+                          color: AppColor.error.withValues(alpha: 0.5),
+                        ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.lg,
                           vertical: AppSpacing.sm,
@@ -241,13 +183,11 @@ class _AccountPageState extends State<AccountPage> {
                       label: const Text('Disconnect'),
                       onPressed: _disconnect,
                     ),
-                  ],
                 ],
               ),
 
               const SizedBox(height: AppSpacing.lg),
 
-              // Status / error banner
               _buildStatusBanner(),
             ],
           ),
@@ -287,8 +227,7 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  Widget _buildProfileCard() {
-    final info = _accountInfo!;
+  Widget _buildProfileCard(AccountInfo info) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -298,10 +237,8 @@ class _AccountPageState extends State<AccountPage> {
       ),
       child: Row(
         children: [
-          // Avatar
           _buildAvatar(info),
           const SizedBox(width: AppSpacing.md),
-          // Name & ID
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,11 +266,12 @@ class _AccountPageState extends State<AccountPage> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColor.surfaceLight,
-                        borderRadius:
-                            BorderRadius.circular(AppRadius.xs),
+                        borderRadius: BorderRadius.circular(AppRadius.xs),
                       ),
                       child: Text(
                         'ID: ${info.userId}',
@@ -349,10 +287,8 @@ class _AccountPageState extends State<AccountPage> {
               ],
             ),
           ),
-          // Connected indicator
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: AppColor.success.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -386,10 +322,11 @@ class _AccountPageState extends State<AccountPage> {
         radius: 28,
       );
     }
-    // Fallback: initials
+
     final initial = info.effectiveDisplayName.isNotEmpty
         ? info.effectiveDisplayName[0].toUpperCase()
         : '?';
+
     return CircleAvatar(
       backgroundColor: AppColor.cyan,
       radius: 28,
@@ -405,32 +342,30 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Widget _buildStatusBanner() {
+    final isConnected = _session.isConnected;
+    final isConnecting = _session.isConnecting;
+    final errorMessage = _session.errorMessage;
+
     final String text;
     final Color bannerColor;
     final IconData icon;
 
-    switch (_state) {
-      case _ConnState.disconnected:
-        text = 'Not connected. Enter your token above and press Connect.';
-        bannerColor = AppColor.textMuted;
-        icon = Icons.wifi_off_rounded;
-        break;
-      case _ConnState.connecting:
-        text = 'Verifying with Discord…';
-        bannerColor = AppColor.cyan;
-        icon = Icons.sync_rounded;
-        break;
-      case _ConnState.connected:
-        text = 'Token verified. Profile loaded from Discord.';
-        bannerColor = AppColor.success;
-        icon = Icons.check_circle_outline_rounded;
-        break;
-      case _ConnState.failed:
-        text = _errorMessage ??
-            'Connection failed. Check your token and try again.';
-        bannerColor = AppColor.error;
-        icon = Icons.error_outline_rounded;
-        break;
+    if (isConnecting) {
+      text = 'Verifying with Discord…';
+      bannerColor = AppColor.cyan;
+      icon = Icons.sync_rounded;
+    } else if (isConnected) {
+      text = 'Token verified. Profile loaded from Discord.';
+      bannerColor = AppColor.success;
+      icon = Icons.check_circle_outline_rounded;
+    } else if (errorMessage != null) {
+      text = errorMessage;
+      bannerColor = AppColor.error;
+      icon = Icons.error_outline_rounded;
+    } else {
+      text = 'Not connected. Enter your token above and press Connect.';
+      bannerColor = AppColor.textMuted;
+      icon = Icons.wifi_off_rounded;
     }
 
     return Container(

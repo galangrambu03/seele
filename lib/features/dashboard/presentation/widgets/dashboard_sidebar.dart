@@ -1,29 +1,35 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
-import 'discord_orb_icon.dart';
+import '../../../../core/session/account_session.dart';
 
 class DashboardSidebar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int>? onDestinationSelected;
+  final AccountSession? accountSession;
 
   const DashboardSidebar({
     super.key,
     this.selectedIndex = 0,
     this.onDestinationSelected,
+    this.accountSession,
   });
 
   @override
   Widget build(BuildContext context) {
+    final account = accountSession?.accountInfo;
+    final username = account?.effectiveDisplayName ?? 'Seele Explorer';
+    final avatarUrl = account?.avatarUrl;
+
+    final initial = username.isNotEmpty ? username[0].toUpperCase() : 'S';
+
     return Container(
       width: 260,
       decoration: const BoxDecoration(
         color: AppColor.surface,
         border: Border(
-          right: BorderSide(
-            color: AppColor.cardBorder,
-            width: 1.5,
-          ),
+          right: BorderSide(color: AppColor.cardBorder, width: 1.5),
         ),
       ),
       padding: const EdgeInsets.symmetric(
@@ -33,7 +39,7 @@ class DashboardSidebar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Brand Header
+          // Brand Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             child: Row(
@@ -75,28 +81,24 @@ class DashboardSidebar extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColor.cyan.withValues(alpha: 0.18),
-                            borderRadius: BorderRadius.circular(AppRadius.xs),
-                          ),
-                          child: const Text(
-                            'QUESTS',
-                            style: TextStyle(
-                              color: AppColor.cyan,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColor.cyan.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(AppRadius.xs),
+                      ),
+                      child: const Text(
+                        'QUESTS',
+                        style: TextStyle(
+                          color: AppColor.cyan,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -106,7 +108,7 @@ class DashboardSidebar extends StatelessWidget {
 
           const SizedBox(height: AppSpacing.xxl),
 
-          // 2. Navigation Items
+          // Navigation
           _SidebarNavItem(
             icon: Icons.grid_view_rounded,
             label: 'Dashboard',
@@ -114,36 +116,15 @@ class DashboardSidebar extends StatelessWidget {
             onTap: () => onDestinationSelected?.call(0),
           ),
           const SizedBox(height: AppSpacing.sm),
+
           _SidebarNavItem(
             icon: Icons.flag_rounded,
             label: 'Quests',
             selected: selectedIndex == 1,
-            badge: '4',
-            badgeColor: AppColor.amber,
             onTap: () => onDestinationSelected?.call(1),
           ),
           const SizedBox(height: AppSpacing.sm),
-          _SidebarNavItem(
-            customIcon: const DiscordOrbIcon(size: 20),
-            label: 'Orbs Vault',
-            selected: selectedIndex == 2,
-            onTap: () => onDestinationSelected?.call(2),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _SidebarNavItem(
-            icon: Icons.leaderboard_rounded,
-            label: 'Leaderboard',
-            selected: selectedIndex == 3,
-            onTap: () => onDestinationSelected?.call(3),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _SidebarNavItem(
-            icon: Icons.settings_rounded,
-            label: 'Settings',
-            selected: selectedIndex == 4,
-            onTap: () => onDestinationSelected?.call(4),
-          ),
-          const SizedBox(height: AppSpacing.sm),
+
           _SidebarNavItem(
             icon: Icons.account_circle_rounded,
             label: 'Account',
@@ -153,83 +134,67 @@ class DashboardSidebar extends StatelessWidget {
 
           const Spacer(),
 
-          // 3. User Level & Streak Footer Widget
+          // Discord Profile
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColor.background,
               borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(
-                color: AppColor.cardBorder,
-                width: 1.5,
-              ),
+              border: Border.all(color: AppColor.cardBorder, width: 1.5),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: AppColor.cyan,
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: AppColor.cyanDark,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'S8',
-                          style: TextStyle(
-                            color: AppColor.background,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Seele Explorer',
-                            style: TextStyle(
-                              color: AppColor.textPrimary,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 13,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            'Level 8 • 850 XP',
-                            style: TextStyle(
-                              color: AppColor.textSecondary,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  child: const LinearProgressIndicator(
-                    value: 0.72,
-                    minHeight: 6,
-                    backgroundColor: AppColor.surfaceLight,
-                    color: AppColor.lime,
+                SizedBox(
+                  width: 38,
+                  height: 38,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    child: avatarUrl != null
+                        ? Image.network(
+                            avatarUrl,
+                            width: 38,
+                            height: 38,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) {
+                              return _buildFallbackAvatar(initial);
+                            },
+                          )
+                        : _buildFallbackAvatar(initial),
                   ),
                 ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        username,
+                        style: const TextStyle(
+                          color: AppColor.textPrimary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        accountSession?.isConnected == true
+                            ? 'Discord Account'
+                            : 'Not connected',
+                        style: const TextStyle(
+                          color: AppColor.textSecondary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (accountSession?.isConnected == true)
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: AppColor.lime,
+                    size: 17,
+                  ),
               ],
             ),
           ),
@@ -237,24 +202,42 @@ class DashboardSidebar extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildFallbackAvatar(String initial) {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: AppColor.cyan,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        boxShadow: const [
+          BoxShadow(color: AppColor.cyanDark, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          accountSession?.isConnected == true ? initial : 'S8',
+          style: const TextStyle(
+            color: AppColor.background,
+            fontWeight: FontWeight.w900,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _SidebarNavItem extends StatelessWidget {
-  final IconData? icon;
-  final Widget? customIcon;
+  final IconData icon;
   final String label;
   final bool selected;
-  final String? badge;
-  final Color? badgeColor;
   final VoidCallback? onTap;
 
   const _SidebarNavItem({
-    this.icon,
-    this.customIcon,
+    required this.icon,
     required this.label,
     this.selected = false,
-    this.badge,
-    this.badgeColor,
     this.onTap,
   });
 
@@ -287,14 +270,11 @@ class _SidebarNavItem extends StatelessWidget {
           ),
           child: Row(
             children: [
-              if (customIcon != null)
-                customIcon!
-              else if (icon != null)
-                Icon(
-                  icon,
-                  size: 22,
-                  color: selected ? AppColor.lime : AppColor.textSecondary,
-                ),
+              Icon(
+                icon,
+                size: 22,
+                color: selected ? AppColor.lime : AppColor.textSecondary,
+              ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
@@ -306,25 +286,6 @@ class _SidebarNavItem extends StatelessWidget {
                   ),
                 ),
               ),
-              if (badge != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: (badgeColor ?? AppColor.lime),
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                  ),
-                  child: Text(
-                    badge!,
-                    style: const TextStyle(
-                      color: AppColor.background,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
