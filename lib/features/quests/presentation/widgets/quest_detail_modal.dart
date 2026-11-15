@@ -6,18 +6,35 @@ import '../../../dashboard/presentation/widgets/discord_orb_icon.dart';
 import '../../../dashboard/presentation/widgets/seele_mascot.dart';
 import '../../../dashboard/presentation/widgets/tactile_button.dart';
 import '../../domain/entities/quest_entity.dart';
+import '../../domain/engines/quest_engine.dart';
 
 class QuestDetailModal extends StatelessWidget {
   final Quest quest;
+  final QuestEngine? engine;
   final VoidCallback? onStartOrResume;
+  final VoidCallback? onPause;
+  final VoidCallback? onStop;
+  final QuestRunStatus? runStatus;
 
   const QuestDetailModal({
     super.key,
     required this.quest,
+    this.engine,
     this.onStartOrResume,
+    this.onPause,
+    this.onStop,
+    this.runStatus,
   });
 
-  static Future<void> show(BuildContext context, Quest quest) {
+  static Future<void> show(
+    BuildContext context,
+    Quest quest, {
+    VoidCallback? onStartOrResume,
+    VoidCallback? onPause,
+    VoidCallback? onStop,
+    QuestRunStatus? runStatus,
+    QuestEngine? engine,
+  }) {
     final isDesktop = MediaQuery.of(context).size.width >= 700;
 
     if (isDesktop) {
@@ -32,7 +49,14 @@ class QuestDetailModal extends StatelessWidget {
             ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 580),
-              child: QuestDetailModal(quest: quest),
+              child: QuestDetailModal(
+                quest: quest,
+                engine: engine,
+                onStartOrResume: onStartOrResume,
+                onPause: onPause,
+                onStop: onStop,
+                runStatus: runStatus,
+              ),
             ),
           );
         },
@@ -44,7 +68,14 @@ class QuestDetailModal extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return QuestDetailModal(quest: quest);
+        return QuestDetailModal(
+          quest: quest,
+          engine: engine,
+          onStartOrResume: onStartOrResume,
+          onPause: onPause,
+          onStop: onStop,
+          runStatus: runStatus,
+        );
       },
     );
   }
@@ -64,6 +95,32 @@ class QuestDetailModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentEngine = engine;
+
+    if (currentEngine == null) {
+      return _buildContent(context, quest, runStatus);
+    }
+
+    return AnimatedBuilder(
+      animation: Listenable.merge([currentEngine, currentEngine.repository]),
+      builder: (context, _) {
+        final liveQuest =
+            currentEngine.repository.getQuestById(quest.id) ?? quest;
+
+        return _buildContent(
+          context,
+          liveQuest,
+          currentEngine.getRun(quest.id)?.status,
+        );
+      },
+    );
+  }
+
+  Widget _buildContent(
+    BuildContext context,
+    Quest quest,
+    QuestRunStatus? runStatus,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: AppColor.surface,
@@ -504,15 +561,47 @@ class QuestDetailModal extends StatelessWidget {
                               ],
                             ),
                           )
+                        : runStatus == QuestRunStatus.running
+                        ? Container(
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: AppColor.cyan.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
+                              border: Border.all(
+                                color: AppColor.cyan.withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: const Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.play_circle_fill_rounded,
+                                    color: AppColor.cyan,
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Quest Running',
+                                    style: TextStyle(
+                                      color: AppColor.cyan,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
                         : TactileButton(
-                            label: quest.isInProgress
+                            label: runStatus == QuestRunStatus.paused
                                 ? 'Resume Quest'
                                 : 'Start Quest Now',
                             color: _buttonTactileColor,
                             fullWidth: true,
                             height: 44,
                             icon: Icon(
-                              quest.isInProgress
+                              runStatus == QuestRunStatus.paused
                                   ? Icons.play_arrow_rounded
                                   : Icons.bolt_rounded,
                               size: 18,
@@ -537,6 +626,69 @@ class QuestDetailModal extends StatelessWidget {
                   ),
                 ],
               ),
+
+              if (runStatus == QuestRunStatus.running ||
+                  runStatus == QuestRunStatus.paused) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    if (runStatus == QuestRunStatus.running)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onPause == null
+                              ? null
+                              : () {
+                                  Navigator.of(context).pop();
+                                  onPause!.call();
+                                },
+                          icon: const Icon(Icons.pause_rounded),
+                          label: const Text('Pause'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColor.amber,
+                            side: const BorderSide(color: AppColor.amber),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                    if (runStatus == QuestRunStatus.paused)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onStartOrResume == null
+                              ? null
+                              : () {
+                                  Navigator.of(context).pop();
+                                  onStartOrResume!.call();
+                                },
+                          icon: const Icon(Icons.play_arrow_rounded),
+                          label: const Text('Resume'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColor.cyan,
+                            side: const BorderSide(color: AppColor.cyan),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: onStop == null
+                            ? null
+                            : () {
+                                Navigator.of(context).pop();
+                                onStop!.call();
+                              },
+                        icon: const Icon(Icons.stop_rounded),
+                        label: const Text('Stop'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColor.error,
+                          side: const BorderSide(color: AppColor.error),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

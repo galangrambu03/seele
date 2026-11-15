@@ -7,6 +7,7 @@ import '../../../dashboard/presentation/widgets/dashboard_sidebar.dart';
 import '../../../dashboard/presentation/widgets/quest_card.dart';
 import '../../data/repositories/mock_quest_repository.dart';
 import '../../domain/entities/quest_entity.dart';
+import '../../domain/engines/quest_engine.dart';
 import '../../domain/repositories/quest_repository.dart';
 import '../widgets/mock_data_banner.dart';
 import '../widgets/quest_detail_modal.dart';
@@ -15,12 +16,14 @@ import '../widgets/quest_stats_overview.dart';
 
 class QuestsPage extends StatefulWidget {
   final QuestRepository? repository;
+  final QuestEngine? engine;
   final ValueChanged<int>? onNavigate;
   final bool embedded; // whether embedded inside main navigation shell
 
   const QuestsPage({
     super.key,
     this.repository,
+    this.engine,
     this.onNavigate,
     this.embedded = false,
   });
@@ -359,10 +362,72 @@ class _QuestsPageState extends State<QuestsPage> {
                                         onTap: () => QuestDetailModal.show(
                                           context,
                                           quest,
+                                          engine: widget.engine,
+                                          runStatus: widget.engine
+                                              ?.getRun(quest.id)
+                                              ?.status,
+                                          onStartOrResume: widget.engine == null
+                                              ? null
+                                              : () {
+                                                  final status = widget.engine!
+                                                      .getRun(quest.id)
+                                                      ?.status;
+                                                  if (status ==
+                                                      QuestRunStatus.paused) {
+                                                    widget.engine!.resume(
+                                                      quest.id,
+                                                    );
+                                                  } else {
+                                                    widget.engine!.start(
+                                                      quest.id,
+                                                    );
+                                                  }
+                                                },
+                                          onPause: widget.engine == null
+                                              ? null
+                                              : () => widget.engine!.pause(
+                                                  quest.id,
+                                                ),
+                                          onStop: widget.engine == null
+                                              ? null
+                                              : () => widget.engine!.stop(
+                                                  quest.id,
+                                                ),
                                         ),
                                         onAction: () => QuestDetailModal.show(
                                           context,
                                           quest,
+                                          engine: widget.engine,
+                                          runStatus: widget.engine
+                                              ?.getRun(quest.id)
+                                              ?.status,
+                                          onStartOrResume: widget.engine == null
+                                              ? null
+                                              : () {
+                                                  final status = widget.engine!
+                                                      .getRun(quest.id)
+                                                      ?.status;
+                                                  if (status ==
+                                                      QuestRunStatus.paused) {
+                                                    widget.engine!.resume(
+                                                      quest.id,
+                                                    );
+                                                  } else {
+                                                    widget.engine!.start(
+                                                      quest.id,
+                                                    );
+                                                  }
+                                                },
+                                          onPause: widget.engine == null
+                                              ? null
+                                              : () => widget.engine!.pause(
+                                                  quest.id,
+                                                ),
+                                          onStop: widget.engine == null
+                                              ? null
+                                              : () => widget.engine!.stop(
+                                                  quest.id,
+                                                ),
                                         ),
                                       ),
                                     );
@@ -378,10 +443,74 @@ class _QuestsPageState extends State<QuestsPage> {
                                     ),
                                     child: QuestCard(
                                       quest: quest,
-                                      onTap: () =>
-                                          QuestDetailModal.show(context, quest),
-                                      onAction: () =>
-                                          QuestDetailModal.show(context, quest),
+                                      onTap: () => QuestDetailModal.show(
+                                        context,
+                                        quest,
+                                        engine: widget.engine,
+                                        runStatus: widget.engine
+                                            ?.getRun(quest.id)
+                                            ?.status,
+                                        onStartOrResume: widget.engine == null
+                                            ? null
+                                            : () {
+                                                final status = widget.engine!
+                                                    .getRun(quest.id)
+                                                    ?.status;
+                                                if (status ==
+                                                    QuestRunStatus.paused) {
+                                                  widget.engine!.resume(
+                                                    quest.id,
+                                                  );
+                                                } else {
+                                                  widget.engine!.start(
+                                                    quest.id,
+                                                  );
+                                                }
+                                              },
+                                        onPause: widget.engine == null
+                                            ? null
+                                            : () => widget.engine!.pause(
+                                                quest.id,
+                                              ),
+                                        onStop: widget.engine == null
+                                            ? null
+                                            : () =>
+                                                  widget.engine!.stop(quest.id),
+                                      ),
+                                      onAction: () => QuestDetailModal.show(
+                                        context,
+                                        quest,
+                                        engine: widget.engine,
+                                        runStatus: widget.engine
+                                            ?.getRun(quest.id)
+                                            ?.status,
+                                        onStartOrResume: widget.engine == null
+                                            ? null
+                                            : () {
+                                                final status = widget.engine!
+                                                    .getRun(quest.id)
+                                                    ?.status;
+                                                if (status ==
+                                                    QuestRunStatus.paused) {
+                                                  widget.engine!.resume(
+                                                    quest.id,
+                                                  );
+                                                } else {
+                                                  widget.engine!.start(
+                                                    quest.id,
+                                                  );
+                                                }
+                                              },
+                                        onPause: widget.engine == null
+                                            ? null
+                                            : () => widget.engine!.pause(
+                                                quest.id,
+                                              ),
+                                        onStop: widget.engine == null
+                                            ? null
+                                            : () =>
+                                                  widget.engine!.stop(quest.id),
+                                      ),
                                     ),
                                   );
                                 }).toList(),

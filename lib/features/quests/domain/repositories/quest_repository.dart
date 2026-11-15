@@ -12,3 +12,7 @@ abstract class QuestRepository extends ChangeNotifier {
   bool get isMockDataSource;
   String get dataSourceLabel;
 }
+
+abstract interface class QuestProgressWriter {
+  void updateProgress(String questId, int completedSeconds);
+}

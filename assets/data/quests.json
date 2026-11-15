@@ -1,0 +1,140 @@
+{
+  "quests": [
+    {
+      "id": "fixture_video_001",
+      "config": {
+        "messages": {
+          "questName": "Watch Video Challenge",
+          "questDescription": "Watch the required video to earn rewards."
+        },
+        "rewards_config": {
+          "rewards": [
+            {
+              "orb_quantity": 100,
+              "messages": {
+                "name": "100 Discord Orbs"
+              }
+            }
+          ]
+        },
+        "taskConfig": {
+          "tasks": {
+            "WATCH_VIDEO": {
+              "target": 900
+            }
+          }
+        }
+      },
+      "userStatus": {
+        "progress": {
+          "WATCH_VIDEO": {
+            "value": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "fixture_game_001",
+      "config": {
+        "messages": {
+          "questName": "Gaming Session",
+          "questDescription": "Play the required game for 25 minutes."
+        },
+        "rewards_config": {
+          "rewards": [
+            {
+              "orb_quantity": 150
+            }
+          ]
+        },
+        "taskConfig": {
+          "tasks": {
+            "PLAY_ON_DESKTOP": {
+              "target": 1500
+            }
+          }
+        }
+      },
+      "userStatus": {
+        "enrolledAt": "2026-11-14T10:00:00.000Z",
+        "progress": {
+          "PLAY_ON_DESKTOP": {
+            "value": 975
+          }
+        }
+      }
+    },
+    {
+      "id": "fixture_stream_001",
+      "config": {
+        "messages": {
+          "questName": "Streaming Challenge",
+          "questDescription": "Stream a game for 10 minutes."
+        },
+        "rewards_config": {
+          "rewards": [
+            {
+              "orb_quantity": 200
+            }
+          ]
+        },
+        "taskConfig": {
+          "tasks": {
+            "STREAM_ON_DESKTOP": {
+              "target": 600
+            }
+          }
+        }
+      },
+      "userStatus": {
+        "enrolledAt": "2026-11-14T10:00:00.000Z",
+        "completedAt": "2026-11-14T10:10:00.000Z",
+        "progress": {
+          "STREAM_ON_DESKTOP": {
+            "value": 600
+          }
+        }
+      }
+    },
+    {
+      "id": "fixture_achievement_001",
+      "config": {
+        "messages": {
+          "questName": "Achievement Hunter",
+          "questDescription": "Unlock 5 achievements in the activity."
+        },
+        "rewards_config": {
+          "rewards": [
+            {
+              "orb_quantity": 250
+            }
+          ]
+        },
+        "application": {
+          "id": "123456789"
+        },
+        "taskConfig": {
+          "tasks": {
+            "ACHIEVEMENT_IN_ACTIVITY": {
+              "target": 5,
+              "event_name": "achievement",
+              "applications": [
+                {
+                  "id": "123456789"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "userStatus": {
+        "enrolledAt": "2026-11-14T10:00:00.000Z",
+        "progress": {
+          "ACHIEVEMENT_IN_ACTIVITY": {
+            "value": 2
+          }
+        }
+      }
+    }
+  ]
+}

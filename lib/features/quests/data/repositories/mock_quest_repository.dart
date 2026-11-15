@@ -1,12 +1,14 @@
 import '../../domain/entities/quest_entity.dart';
 import '../../domain/repositories/quest_repository.dart';
 
-class MockQuestRepository extends QuestRepository {
+class MockQuestRepository extends QuestRepository
+    implements QuestProgressWriter {
   final List<Quest> _quests;
 
   MockQuestRepository({List<Quest>? customQuests})
     : _quests = List<Quest>.of(customQuests ?? _defaultMockQuests);
 
+  @override
   void updateProgress(String questId, int completedSeconds) {
     final index = _quests.indexWhere((quest) => quest.id == questId);
     if (index == -1) return;
@@ -87,6 +89,8 @@ class MockQuestRepository extends QuestRepository {
       status: QuestStatus.available,
       rewardOrbs: 150,
       duration: '15 min',
+      targetSeconds: 900,
+      completedSeconds: 0,
       progress: 0.0,
       requirements: [
         'Watch the official SEELE community livestream on Discord Stage',
@@ -102,6 +106,8 @@ class MockQuestRepository extends QuestRepository {
       status: QuestStatus.inProgress,
       rewardOrbs: 300,
       duration: '25 min',
+      targetSeconds: 1500,
+      completedSeconds: 975,
       progress: 0.65,
       requirements: [
         'Launch SEELE Arcade from the Discord Activity Launcher',
@@ -117,6 +123,8 @@ class MockQuestRepository extends QuestRepository {
       status: QuestStatus.inProgress,
       rewardOrbs: 250,
       duration: '20 min',
+      targetSeconds: 1200,
+      completedSeconds: 480,
       progress: 0.40,
       requirements: [
         'Join any active Discord voice channel with 2 or more members',
@@ -132,6 +140,8 @@ class MockQuestRepository extends QuestRepository {
       status: QuestStatus.completed,
       rewardOrbs: 100,
       duration: '10 min',
+      targetSeconds: 600,
+      completedSeconds: 600,
       progress: 1.0,
       requirements: [
         'Join the verified Community Soundstage channel',
@@ -147,6 +157,8 @@ class MockQuestRepository extends QuestRepository {
       status: QuestStatus.available,
       rewardOrbs: 400,
       duration: '30 min',
+      targetSeconds: 1800,
+      completedSeconds: 0,
       progress: 0.0,
       requirements: [
         'Enter Weekly Speedrun Boss Challenge in SEELE Arcade',
@@ -163,6 +175,8 @@ class MockQuestRepository extends QuestRepository {
       status: QuestStatus.completed,
       rewardOrbs: 120,
       duration: '12 min',
+      targetSeconds: 720,
+      completedSeconds: 720,
       progress: 1.0,
       requirements: [
         'Open the Championship VOD in Discord Video Player',

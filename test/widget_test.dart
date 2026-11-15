@@ -8,6 +8,43 @@ import 'package:discord_quest_seele/features/quests/presentation/widgets/quest_d
 import 'package:discord_quest_seele/core/theme/app_theme.dart';
 
 void main() {
+  Future<void> waitForDashboard(WidgetTester tester) async {
+    for (var i = 0; i < 50; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+
+      if (find.text('Dashboard').evaluate().isNotEmpty) {
+        return;
+      }
+
+      final errorFinder = find.textContaining('Gagal memuat quest:');
+      if (errorFinder.evaluate().isNotEmpty) {
+        final errorText = tester.widget<Text>(errorFinder.first).data;
+        fail('Dashboard gagal memuat quest: $errorText');
+      }
+    }
+
+    final visibleTexts = tester
+        .widgetList<Text>(find.byType(Text))
+        .map((widget) => widget.data)
+        .whereType<String>()
+        .toList();
+
+    final exception = tester.takeException();
+    final scaffoldCount = find.byType(Scaffold).evaluate().length;
+    final spinnerCount = find
+        .byType(CircularProgressIndicator)
+        .evaluate()
+        .length;
+
+    fail(
+      'Dashboard tidak muncul setelah 5 detik. '
+      'Scaffold: $scaffoldCount, '
+      'Spinner: $spinnerCount, '
+      'Exception: $exception, '
+      'Teks UI: $visibleTexts',
+    );
+  }
+
   testWidgets('Dashboard renders simplified SEELE layout', (tester) async {
     tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1.0;
@@ -22,6 +59,7 @@ void main() {
         home: DashboardPage(accountSession: session),
       ),
     );
+    await waitForDashboard(tester);
 
     expect(find.text('Dashboard'), findsAtLeastNWidgets(1));
     expect(find.text('Welcome back, Guest!'), findsOneWidget);
@@ -50,6 +88,7 @@ void main() {
         home: DashboardPage(accountSession: session),
       ),
     );
+    await waitForDashboard(tester);
 
     expect(find.text('Dashboard'), findsAtLeastNWidgets(1));
     expect(find.text('Welcome back, Guest!'), findsOneWidget);
@@ -112,11 +151,12 @@ void main() {
         home: DashboardPage(accountSession: session),
       ),
     );
+    await waitForDashboard(tester);
 
     expect(find.text('Dashboard'), findsAtLeastNWidgets(1));
 
     await tester.tap(find.text('Quests'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.text('Quests Hub'), findsOneWidget);
     expect(find.text('TOTAL QUESTS'), findsOneWidget);

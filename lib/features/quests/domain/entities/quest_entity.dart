@@ -140,3 +140,45 @@ class Quest {
   bool get isInProgress => status == QuestStatus.inProgress;
   bool get isCompleted => status == QuestStatus.completed;
 }
+
+/// Model quest "live" dari Discord API (port dari QuestState di Velocity X).
+/// Terpisah dari [Quest] yang dipakai fixture/mock lokal.
+class QuestEntity {
+  final String id;
+  final String name;
+  final String reward;
+  final String? taskType;
+  final int secondsNeeded;
+  final double secondsDone;
+  final bool isEnrolled;
+  final bool isCompleted;
+  final bool isCompletable;
+  final String? enrolledAt;
+  final String? expiresAt;
+  final Map<String, dynamic> rawMetadata;
+
+  const QuestEntity({
+    required this.id,
+    required this.name,
+    required this.reward,
+    required this.taskType,
+    required this.secondsNeeded,
+    required this.secondsDone,
+    required this.isEnrolled,
+    required this.isCompleted,
+    required this.isCompletable,
+    required this.rawMetadata,
+    this.enrolledAt,
+    this.expiresAt,
+  });
+
+  double get pct {
+    if (secondsNeeded == 0) return 100.0;
+    return (secondsDone / secondsNeeded * 100).clamp(0.0, 100.0);
+  }
+
+  double get remaining {
+    final r = secondsNeeded - secondsDone;
+    return r < 0 ? 0.0 : r.toDouble();
+  }
+}
