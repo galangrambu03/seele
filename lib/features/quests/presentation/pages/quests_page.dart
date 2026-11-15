@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
+import '../../../../core/session/account_session.dart';
 import '../../../dashboard/presentation/widgets/dashboard_bottom_nav.dart';
 import '../../../dashboard/presentation/widgets/dashboard_sidebar.dart';
 import '../../../dashboard/presentation/widgets/quest_card.dart';
@@ -17,13 +18,15 @@ import '../widgets/quest_stats_overview.dart';
 class QuestsPage extends StatefulWidget {
   final QuestRepository? repository;
   final QuestEngine? engine;
+  final AccountSession? accountSession; // Tambahan untuk Sidebar
   final ValueChanged<int>? onNavigate;
-  final bool embedded; // whether embedded inside main navigation shell
+  final bool embedded;
 
   const QuestsPage({
     super.key,
     this.repository,
     this.engine,
+    this.accountSession,
     this.onNavigate,
     this.embedded = false,
   });
@@ -542,6 +545,7 @@ class _QuestsPageState extends State<QuestsPage> {
                 children: [
                   if (isDesktop)
                     DashboardSidebar(
+                      accountSession: widget.accountSession ?? AccountSession(), // <-- Perbaikan di sini
                       selectedIndex: 1, // Quests is tab 1
                       onDestinationSelected: (idx) =>
                           widget.onNavigate?.call(idx),

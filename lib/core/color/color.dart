@@ -3,45 +3,46 @@ import 'package:material_ui/material_ui.dart';
 class AppColor {
   AppColor._();
 
-  // Backgrounds & Surface (Dark Navy Hierarchy)
-  static const background = Color(0xFF131F33);
-  static const surface = Color(0xFF1C2C45);
-  static const surfaceLight = Color(0xFF283D5D);
-  static const surfaceHighlight = Color(0xFF344D75);
-  static const cardBorder = Color(0xFF2C4366);
+  // ── Latar & Surface (Nuansa Ungu Gelap / Dark Seele) ────────────────
+  static const Color background = Color(0xFF120C1C);
+  static const Color surface = Color(0xFF1A1124);
+  static const Color surfaceLight = Color(0xFF261A33);
+  static const Color surfaceHighlight = Color(0xFF3A2650);
+  static const Color cardBorder = Color(0xFF38254A);
 
-  // Playful Pastel Accents
-  static const lime = Color(0xFFCBEAA4);
-  static const limeDark = Color(0xFFA2C875);
-  static const limeSoft = Color(0xFFE4F5CF);
+  // ── Aksen Utama: Merah Seele Vollerei ───────────────────────────────
+  static const Color lime = Color(0xFFE53935);      // Merah menyala
+  static const Color limeDark = Color(0xFFB71C1C);  // Merah gelap (untuk tombol 3D)
+  static const Color limeSoft = Color(0xFFFFCDD2);  // Merah pudar
 
-  static const cyan = Color(0xFF28C3DC);
-  static const cyanDark = Color(0xFF1B99AE);
-  static const cyanSoft = Color(0xFFB3EFF9);
+  // ── Aksen Sekunder: Ungu Stigmata ───────────────────────────────────
+  static const Color cyan = Color(0xFF9C27B0);      // Ungu
+  static const Color cyanDark = Color(0xFF6A1B9A);  // Ungu gelap
+  static const Color cyanSoft = Color(0xFFE1BEE7);  // Ungu pudar
 
-  static const lavender = Color(0xFFD7C6E5);
-  static const lavenderDark = Color(0xFFAA95BE);
-  static const lavenderSoft = Color(0xFFEFE8F6);
+  // ── Aksen Tersier: Kuning/Amber (untuk variasi) ─────────────────────
+  static const Color amber = Color(0xFFFFB300);     
+  static const Color amberDark = Color(0xFFFF8F00);
+  static const Color amberSoft = Color(0xFFFFECB3);
 
-  static const amber = Color(0xFFF4D59B);
-  static const amberDark = Color(0xFFCBA55F);
-  static const amberSoft = Color(0xFFFAECD2);
+  // ── Aksen Khusus: Lavender (Nuansa Seele) ───────────────────────────
+  static const Color lavender = Color(0xFFB39DDB);
+  static const Color lavenderDark = Color(0xFF7E57C2);
+  static const Color lavenderSoft = Color(0xFFD1C4E9);
 
-  // Text Hierarchy
-  static const textPrimary = Color(0xFFF7F8FC);
-  static const textSecondary = Color(0xFF9AAAC1);
-  static const textMuted = Color(0xFF6B7E99);
+  // ── Teks ────────────────────────────────────────────────────────────
+  static const Color textPrimary = Color(0xFFF7F8FC);
+  static const Color textSecondary = Color(0xFFB0A8C0); // Abu-abu keunguan
+  static const Color textMuted = Color(0xFF7B6F8A);
 
-  // Status Colors
-  static const success = Color(0xFF68C98A);
-  static const successDark = Color(0xFF439E63);
-  static const inProgress = Color(0xFF28C3DC);
-  static const available = Color(0xFFCBEAA4);
-  static const error = Color(0xFFFF7777);
+  // ── Status ──────────────────────────────────────────────────────────
+  static const Color success = Color(0xFF68C98A);
+  static const Color successDark = Color(0xFF439E63);
+  static const Color error = Color(0xFFFF5252);     // Merah error
 
-  // Quest Category Colors
-  static const questVideo = lime;
-  static const questGame = cyan;
-  static const questStream = lavender;
-  static const questActivity = amber;
+  // ── Warna Spesifik Kategori Quest ───────────────────────────────────
+  static const Color questVideo = lime;       // Merah
+  static const Color questGame = cyan;        // Ungu
+  static const Color questStream = lavender;  // Lavender
+  static const Color questActivity = amber;   // Amber
 }

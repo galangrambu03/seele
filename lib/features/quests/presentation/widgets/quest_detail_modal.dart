@@ -3,7 +3,6 @@ import 'package:material_ui/material_ui.dart';
 import '../../../../core/color/color.dart';
 import '../../../../core/dimensions/dimensions.dart';
 import '../../../dashboard/presentation/widgets/discord_orb_icon.dart';
-import '../../../dashboard/presentation/widgets/seele_mascot.dart';
 import '../../../dashboard/presentation/widgets/tactile_button.dart';
 import '../../domain/entities/quest_entity.dart';
 import '../../domain/engines/quest_engine.dart';
@@ -507,7 +506,7 @@ class QuestDetailModal extends StatelessWidget {
                     SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'Data Simulasi • Belum terhubung ke Discord Gateway API asli',
+                        '-',
                         style: TextStyle(
                           color: AppColor.textSecondary,
                           fontSize: 11,
@@ -524,9 +523,16 @@ class QuestDetailModal extends StatelessWidget {
               // Action Button & Mascot
               Row(
                 children: [
-                  const SeeleMascot(
-                    size: 48,
-                    expression: MascotExpression.happy,
+                  // MASKOT BARU
+                  Image.asset(
+                    quest.isCompleted
+                        ? 'assets/images/seele_done.webp'
+                        : (runStatus == QuestRunStatus.running
+                            ? 'assets/images/seele_work.webp'
+                            : 'assets/images/seele_idle.webp'),
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.contain,
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
@@ -634,56 +640,44 @@ class QuestDetailModal extends StatelessWidget {
                   children: [
                     if (runStatus == QuestRunStatus.running)
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: onPause == null
-                              ? null
-                              : () {
-                                  Navigator.of(context).pop();
-                                  onPause!.call();
-                                },
-                          icon: const Icon(Icons.pause_rounded),
-                          label: const Text('Pause'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColor.amber,
-                            side: const BorderSide(color: AppColor.amber),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
+                        child: TactileButton(
+                          label: 'Pause',
+                          color: TactileColor.amber,
+                          height: 40,
+                          icon: const Icon(Icons.pause_rounded,
+                              size: 16, color: AppColor.background),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            onPause?.call();
+                          },
                         ),
                       ),
                     if (runStatus == QuestRunStatus.paused)
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: onStartOrResume == null
-                              ? null
-                              : () {
-                                  Navigator.of(context).pop();
-                                  onStartOrResume!.call();
-                                },
-                          icon: const Icon(Icons.play_arrow_rounded),
-                          label: const Text('Resume'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColor.cyan,
-                            side: const BorderSide(color: AppColor.cyan),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
+                        child: TactileButton(
+                          label: 'Resume',
+                          color: TactileColor.cyan,
+                          height: 40,
+                          icon: const Icon(Icons.play_arrow_rounded,
+                              size: 16, color: AppColor.background),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            onStartOrResume?.call();
+                          },
                         ),
                       ),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: onStop == null
-                            ? null
-                            : () {
-                                Navigator.of(context).pop();
-                                onStop!.call();
-                              },
-                        icon: const Icon(Icons.stop_rounded),
-                        label: const Text('Stop'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColor.error,
-                          side: const BorderSide(color: AppColor.error),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
+                      child: TactileButton(
+                        label: 'Stop',
+                        color: TactileColor.surface,
+                        height: 40,
+                        icon: const Icon(Icons.stop_rounded,
+                            size: 16, color: AppColor.textPrimary),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          onStop?.call();
+                        },
                       ),
                     ),
                   ],
