@@ -168,7 +168,8 @@ class _DashboardPageState extends State<DashboardPage> {
                               setState(() => _currentNavIndex = index);
                             },
                           )
-                        : _currentNavIndex == 5
+                        // Perbaikan: Tangkap index 4 (Profile mobile) DAN 5 (Account desktop)
+                        : (_currentNavIndex == 3 || _currentNavIndex == 4 || _currentNavIndex == 5)
                         ? AccountPage(accountSession: widget.accountSession)
                         : SafeArea(
                             child: SingleChildScrollView(
