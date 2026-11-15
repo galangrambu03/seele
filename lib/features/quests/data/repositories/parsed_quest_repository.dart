@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:http/http.dart' as http;
 
@@ -6,15 +7,28 @@ import '../../../../core/session/account_session.dart';
 import '../../domain/entities/quest_entity.dart';
 import '../../domain/repositories/quest_repository.dart';
 import '../discord/discord_quest_parser.dart';
+import '../discord/build_number_fetcher.dart';
 
 /// Repository quest "live" yang memanggil Discord API langsung.
 /// Juga mengimplementasikan [QuestRepository] agar bisa dipakai UI yang ada.
+///
+/// Delay human-like dan jitter rate-limit di port dari Velocity X:
+/// - `_delay()`: jeda 0.3-0.9s sebelum tiap request, 5% peluang +1.0-2.5s.
+/// - `_waitForRateLimit()`: baca `retry_after` lalu tambah jitter 1.0-3.0s.
 class ParsedQuestRepository extends QuestRepository {
   final http.Client client;
   final AccountSession accountSession;
+  final Random _rng = Random();
 
-  List<Quest> _quests = const [];
+    List<Quest> _quests = const [];
   String _dataSourceLabel = 'Discord Live';
+  int _buildNumber = BuildNumberFetcher.fallback;
+
+  /// Panggil sekali di awal (mis. dari DashboardPage) untuk memperbarui
+  /// build number tanpa memblokir request pertama.
+  Future<void> refreshBuildNumber() async {
+    _buildNumber = await BuildNumberFetcher.fetchLatest(client: client);
+  }
 
   ParsedQuestRepository({
     http.Client? client,
@@ -22,7 +36,6 @@ class ParsedQuestRepository extends QuestRepository {
   }) : client = client ?? http.Client();
 
   /// Mode offline: memuat data dari fixture JSON lokal (dipakai DashboardPage).
-  /// Tidak memerlukan token Discord; hanya untuk menampilkan data awal.
   factory ParsedQuestRepository.fromRawData(dynamic rawData) {
     final repo = ParsedQuestRepository(accountSession: AccountSession());
     repo.seedFromRawData(rawData);
@@ -49,7 +62,7 @@ class ParsedQuestRepository extends QuestRepository {
     }
   }
 
-  // ── QuestRepository ──────────────────────────────────────────────────
+  // QuestRepository
   @override
   List<Quest> getAllQuests() => List.unmodifiable(_quests);
 
@@ -88,7 +101,34 @@ class ParsedQuestRepository extends QuestRepository {
     notifyListeners();
   }
 
-  // ── Headers (dipindah ke helper; tetap identik dgn versi sebelumnya) ──
+  // Human-like delay, port dari DiscordAPI._delay() di Velocity X.
+  Future<void> _delay() async {
+    var base = 0.3 + _rng.nextDouble() * 0.6; // 0.3 - 0.9
+    if (_rng.nextDouble() < 0.05) {
+      base += 1.0 + _rng.nextDouble() * 1.5;
+    }
+    await Future<void>.delayed(
+      Duration(milliseconds: (base * 1000).round()),
+    );
+  }
+
+  // Port dari _wait_for_rate_limit() di Velocity X.
+  Future<void> _waitForRateLimit(http.Response response) async {
+    double retryAfter = 10;
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map && decoded['retry_after'] is num) {
+        retryAfter = (decoded['retry_after'] as num).toDouble();
+      }
+    } catch (_) {
+      // biarkan default
+    }
+    final wait = retryAfter + (1.0 + _rng.nextDouble() * 2.0);
+    await Future<void>.delayed(
+      Duration(milliseconds: (wait * 1000).round()),
+    );
+  }
+
   String _getSuperProperties() {
     final Map<String, dynamic> props = {
       'os': 'Windows',
@@ -104,7 +144,7 @@ class ParsedQuestRepository extends QuestRepository {
           '(KHTML, like Gecko) discord/1.0.9175 Chrome/128.0.6613.186 '
           'Electron/32.2.7 Safari/537.36',
       'browser_version': '32.2.7',
-      'client_build_number': 504649,
+      'client_build_number': _buildNumber,
       'native_build_number': 59498,
       'screen_width': 1920,
       'screen_height': 1080,
@@ -131,10 +171,11 @@ class ParsedQuestRepository extends QuestRepository {
     };
   }
 
-  // ── Discord API ──────────────────────────────────────────────────────
+  // Discord API
   /// Mengambil daftar quest live dari GET /quests/@me (mengembalikan QuestEntity).
   Future<List<QuestEntity>> fetchQuests() async {
     try {
+      await _delay();
       final response = await client.get(
         Uri.parse('https://discord.com/api/v9/quests/@me'),
         headers: _getHeaders(),
@@ -154,9 +195,7 @@ class ParsedQuestRepository extends QuestRepository {
             .map(_entityFromRaw)
             .toList();
       } else if (response.statusCode == 429) {
-        final body = jsonDecode(response.body);
-        final retryAfter = (body['retry_after'] ?? 10).toDouble();
-        await Future<void>.delayed(Duration(seconds: retryAfter.toInt()));
+        await _waitForRateLimit(response);
         return await fetchQuests();
       } else {
         throw Exception(
@@ -166,6 +205,12 @@ class ParsedQuestRepository extends QuestRepository {
     } catch (e) {
       throw Exception('Gagal mengambil data quest live: $e');
     }
+  }
+    /// Hanya menarik quest dari Discord dan memperbarui UI.
+  /// Tidak melakukan enroll dan tidak menjalankan video/heartbeat.
+  Future<void> fetchAndSyncOnly() async {
+    final entities = await fetchQuests();
+    syncUiQuestsFromEntities(entities);
   }
 
   QuestEntity _entityFromRaw(Map<String, dynamic> raw) {
@@ -192,6 +237,7 @@ class ParsedQuestRepository extends QuestRepository {
     Map<String, dynamic>? rawMetadata,
   ) async {
     try {
+      await _delay();
       final response = await client.post(
         Uri.parse('https://discord.com/api/v9/quests/$questId/enroll'),
         headers: _getHeaders(),
@@ -204,6 +250,10 @@ class ParsedQuestRepository extends QuestRepository {
           'traffic_metadata_sealed': rawMetadata?['traffic_metadata_sealed'],
         }),
       );
+      if (response.statusCode == 429) {
+        await _waitForRateLimit(response);
+        return false;
+      }
       return response.statusCode == 200 ||
           response.statusCode == 201 ||
           response.statusCode == 204;
@@ -218,6 +268,7 @@ class ParsedQuestRepository extends QuestRepository {
     double timestamp,
   ) async {
     try {
+      await _delay();
       final response = await client.post(
         Uri.parse(
           'https://discord.com/api/v9/quests/$questId/video-progress',
@@ -229,7 +280,7 @@ class ParsedQuestRepository extends QuestRepository {
         final decoded = jsonDecode(response.body);
         return decoded is Map<String, dynamic> ? decoded : null;
       } else if (response.statusCode == 429) {
-        await Future<void>.delayed(const Duration(seconds: 10));
+        await _waitForRateLimit(response);
       }
       return null;
     } catch (_) {
@@ -244,6 +295,7 @@ class ParsedQuestRepository extends QuestRepository {
     bool terminal,
   ) async {
     try {
+      await _delay();
       final response = await client.post(
         Uri.parse('https://discord.com/api/v9/quests/$questId/heartbeat'),
         headers: _getHeaders(),
@@ -252,6 +304,8 @@ class ParsedQuestRepository extends QuestRepository {
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         return decoded is Map<String, dynamic> ? decoded : null;
+      } else if (response.statusCode == 429) {
+        await _waitForRateLimit(response);
       }
       return null;
     } catch (_) {
@@ -260,9 +314,41 @@ class ParsedQuestRepository extends QuestRepository {
   }
 
   /// Sinkronisasi daftar `Quest` (dipakai UI) dari hasil fetch terakhir.
-  /// Mapping sederhana; kategori/status diturunkan dari task type.
+    /// Sinkronisasi daftar `Quest` (dipakai UI) dari hasil fetch terakhir.
+  /// Menyaring quest yang sudah selesai agar UI hanya menampilkan
+  /// pekerjaan yang belum kelar, dan mengurutkan yang bisa dikerjakan di atas.
+    /// Sinkronisasi daftar `Quest` (dipakai UI) dari hasil fetch terakhir.
+  /// Menyaring quest yang sudah selesai, kedaluwarsa, dan tidak bisa dikerjakan.
   void syncUiQuestsFromEntities(List<QuestEntity> entities) {
-    final mapped = entities.map((e) {
+    // 1. Filter ketat: buang yang selesai, kedaluwarsa, dan tidak bisa dikerjakan
+    final activeEntities = entities.where((e) {
+      if (e.isCompleted) return false; // Sudah selesai
+      
+      // Cek kedaluwarsa (mirip isCompletable di parser)
+      if (e.expiresAt != null) {
+        try {
+          final dt = DateTime.parse(e.expiresAt!.replaceFirst('Z', '+00:00'));
+          if (!dt.isAfter(DateTime.now().toUtc())) return false;
+        } catch (_) {}
+      }
+      
+      // Hanya tampilkan yang bisa dikerjakan atau sedang berjalan
+      return e.isCompletable || e.isEnrolled;
+    }).toList();
+
+    // 2. Urutkan: yang sedang berjalan (enrolled) di paling atas
+    activeEntities.sort((a, b) {
+      if (a.isEnrolled != b.isEnrolled) {
+        return a.isEnrolled ? -1 : 1;
+      }
+      if (a.isCompletable != b.isCompletable) {
+        return a.isCompletable ? -1 : 1;
+      }
+      return 0;
+    });
+
+    // 3. Mapping ke Quest untuk UI
+    final mapped = activeEntities.map((e) {
       final category = _categoryFromTask(e.taskType);
       final QuestStatus status;
       if (e.isCompleted) {
@@ -272,13 +358,19 @@ class ParsedQuestRepository extends QuestRepository {
       } else {
         status = QuestStatus.available;
       }
+      
       final progress = e.secondsNeeded > 0
           ? (e.secondsDone / e.secondsNeeded).clamp(0.0, 1.0)
           : 0.0;
+
+      // Dummy description jika kosong agar UI tidak aneh
+      final desc = (e.rawMetadata['config']?['messages']?['questDescription'] as String?) ?? 
+                   'Complete the objective to earn rewards.';
+
       return Quest(
         id: e.id,
         title: e.name,
-        description: '',
+        description: desc,
         category: category,
         status: status,
         rewardOrbs: _parseOrbs(e.reward),
@@ -291,6 +383,37 @@ class ParsedQuestRepository extends QuestRepository {
     }).toList();
 
     _setQuests(mapped);
+  }
+    /// Dipanggil oleh Engine setiap kali progres berubah agar UI ikut bergerak.
+  void updateQuestProgress(String questId, double secondsDone) {
+    final index = _quests.indexWhere((q) => q.id == questId);
+    if (index == -1) return; // Quest tidak ada di UI
+
+    final oldQuest = _quests[index];
+    final newProgress = oldQuest.targetSeconds != null && oldQuest.targetSeconds! > 0
+        ? (secondsDone / oldQuest.targetSeconds!).clamp(0.0, 1.0)
+        : 0.0;
+
+    // Karena Quest immutable, kita buat objek baru
+    final updatedQuest = Quest(
+      id: oldQuest.id,
+      title: oldQuest.title,
+      description: oldQuest.description,
+      category: oldQuest.category,
+      status: secondsDone >= (oldQuest.targetSeconds ?? 1) 
+          ? QuestStatus.completed 
+          : QuestStatus.inProgress,
+      rewardOrbs: oldQuest.rewardOrbs,
+      duration: oldQuest.duration,
+      progress: newProgress,
+      taskMetadata: oldQuest.taskMetadata,
+      completedSeconds: secondsDone.toInt(),
+      targetSeconds: oldQuest.targetSeconds,
+    );
+
+    final newList = List<Quest>.from(_quests);
+    newList[index] = updatedQuest;
+    _setQuests(newList);
   }
 
   QuestCategory _categoryFromTask(String? taskType) {
@@ -306,5 +429,4 @@ class ParsedQuestRepository extends QuestRepository {
     if (match == null) return 0;
     return int.tryParse(match.group(1) ?? '0') ?? 0;
   }
-
 }

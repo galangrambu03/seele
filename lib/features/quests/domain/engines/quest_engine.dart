@@ -80,6 +80,7 @@ class QuestEngine extends ChangeNotifier {
 
   final Map<String, QuestRun> _runs = {};
   final Set<String> _completedIds = {};
+  final Random _rng = Random();
 
   Function(String message, String level)? onLog;
   Function(List<QuestEntity> quests)? onProgressUpdate;
@@ -152,6 +153,12 @@ class QuestEngine extends ChangeNotifier {
     onLog?.call('Quest Engine dihentikan.', 'error');
   }
 
+  /// Jitter ±10%, port dari jitter() di Velocity X.
+  double _jitterSeconds(double base, [double pct = 0.10]) {
+    final delta = base * pct;
+    return base + (_rng.nextDouble() * 2 - 1) * delta;
+  }
+
   Future<void> start(String questId) async {
     try {
       final entities = await repository.fetchQuests();
@@ -211,8 +218,9 @@ class QuestEngine extends ChangeNotifier {
             onLog?.call('Auto-accept quest: ${quest.name}', 'info');
             final ok = await repository.enrollQuest(quest.id, quest.rawMetadata);
             if (ok) onLog?.call('Berhasil enroll: ${quest.name}', 'ok');
+            // Velocity X: random 2-5s setelah enroll
             await Future<void>.delayed(
-              Duration(milliseconds: 2000 + Random().nextInt(2000)),
+              Duration(milliseconds: 2000 + _rng.nextInt(3000)),
             );
           }
         }
@@ -234,7 +242,11 @@ class QuestEngine extends ChangeNotifier {
             'Tidak ada quest yang perlu dikerjakan. Menunggu scan berikutnya...',
             'info',
           );
-          await Future<void>.delayed(const Duration(seconds: 60));
+          // Velocity X: jitter 10% pada POLL_INTERVAL 60s
+          final wait = _jitterSeconds(60);
+          await Future<void>.delayed(
+            Duration(milliseconds: (wait * 1000).round()),
+          );
           continue;
         }
 
@@ -258,7 +270,11 @@ class QuestEngine extends ChangeNotifier {
         ]);
 
         onLog?.call('Siklus selesai. Menunggu scan berikutnya...', 'ok');
-        await Future<void>.delayed(const Duration(seconds: 30));
+        // Velocity X: jitter 10% pada 30s
+        final wait = _jitterSeconds(30);
+        await Future<void>.delayed(
+          Duration(milliseconds: (wait * 1000).round()),
+        );
       }
     } catch (e) {
       onLog?.call('Error fatal pada QuestEngine: $e', 'error');
@@ -282,19 +298,32 @@ class QuestEngine extends ChangeNotifier {
         if (run.completed || run.status == QuestRunStatus.paused) continue;
         allDone = false;
 
+        // Velocity X: timestamp = min(target, done + SPEED + random(-0.3, 0.8))
         final next = min(
           quest.secondsNeeded.toDouble(),
-          run.secondsDone + 7.0 + Random().nextDouble() * 0.5,
+          run.secondsDone + 7.0 + (_rng.nextDouble() * 1.1 - 0.3),
         );
 
         final response = await repository.sendVideoProgress(quest.id, next);
         if (response != null) {
-          run.advance(next);
+          // Velocity X: baca progress otoritatif dari server
+          final serverProgress = _extractServerProgress(response, quest.taskType);
+          final applied = serverProgress ?? next;
+          run.advance(applied);
           onLog?.call(
             '[Video] ${quest.name}: ${run.secondsDone.toStringAsFixed(0)} / ${quest.secondsNeeded}s',
             'progress',
           );
-          if (run.completed) _completedIds.add(quest.id);
+          if (run.completed) {
+            // Velocity X: kirim timestamp final sekali lagi
+            await repository.sendVideoProgress(
+              quest.id,
+              quest.secondsNeeded.toDouble(),
+            );
+            _completedIds.add(quest.id);
+          }
+          // Update UI setiap detik
+          repository.updateQuestProgress(quest.id, run.secondsDone);
           notifyListeners();
         }
 
@@ -304,15 +333,28 @@ class QuestEngine extends ChangeNotifier {
     }
   }
 
+  /// Port dari pembacaan body.progress[task_type].value di Velocity X.
+  double? _extractServerProgress(
+    Map<String, dynamic> body,
+    String? taskType,
+  ) {
+    if (taskType == null) return null;
+    final progress = body['progress'];
+    if (progress is! Map) return null;
+    final entry = progress[taskType];
+    if (entry is! Map) return null;
+    final v = entry['value'];
+    return v is num ? v.toDouble() : null;
+  }
+
   Future<void> _runHeartbeatGroup(List<QuestEntity> quests) async {
     onLog?.call('Heartbeat Group: ${quests.length} quest', 'info');
 
     await Future.wait(quests.map((quest) async {
       final run = _runs.putIfAbsent(quest.id, () => QuestRun.fromEntity(quest));
-      final rng = Random();
-      final guildId = 100000000000000000 + rng.nextInt(900000000);
-      final channelId = 100000000000000000 + rng.nextInt(900000000);
-      final streamKey = 'guild:$guildId:$channelId:${rng.nextInt(900000000)}';
+      final guildId = 100000000000000000 + _rng.nextInt(900000000);
+      final channelId = 100000000000000000 + _rng.nextInt(900000000);
+      final streamKey = 'guild:$guildId:$channelId:${_rng.nextInt(900000000)}';
 
       while (_isRunning &&
           !_isPaused &&
@@ -322,20 +364,29 @@ class QuestEngine extends ChangeNotifier {
           final res =
               await repository.sendHeartbeat(quest.id, streamKey, false);
           if (res != null) {
-            run.advance(min(
+            final serverProgress =
+                _extractServerProgress(res, quest.taskType);
+            final applied = serverProgress ?? min(
               quest.secondsNeeded.toDouble(),
               run.secondsDone + 20.0,
-            ));
-            onLog?.call(
+            );
+            run.advance(applied);
+                        onLog?.call(
               '[Heartbeat] ${quest.name}: ${run.secondsDone.toStringAsFixed(0)} / ${quest.secondsNeeded}s',
               'progress',
             );
+            // Update UI setiap detik
+            repository.updateQuestProgress(quest.id, run.secondsDone);
             notifyListeners();
           }
         } catch (e) {
           onLog?.call('Heartbeat warning pada ${quest.name}: $e', 'warn');
         }
-        await Future<void>.delayed(const Duration(seconds: 20));
+        // Velocity X: human_sleep(HEARTBEAT_INTERVAL, pct=0.15)
+        final wait = _jitterSeconds(20, 0.15);
+        await Future<void>.delayed(
+          Duration(milliseconds: (wait * 1000).round()),
+        );
       }
 
       await repository.sendHeartbeat(quest.id, streamKey, true);
