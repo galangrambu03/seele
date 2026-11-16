@@ -233,7 +233,6 @@ class QuestEngine extends ChangeNotifier {
             .where((q) =>
                 q.isEnrolled &&
                 !q.isCompleted &&
-                q.isCompletable &&
                 !_completedIds.contains(q.id))
             .toList();
 
