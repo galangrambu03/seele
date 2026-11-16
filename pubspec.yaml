@@ -30,8 +30,9 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/seele_icon_app.jpg"
+  image_path: "assets/images/seele_icon_app.png" # Ubah ke .png
+  remove_alpha_ios: true # Tambahkan ini agar iOS tidak error
   windows:
     generate: true
-    image_path: "assets/images/seele_icon_app.jpg"
+    image_path: "assets/images/seele_icon_app.png"
     icon_size: 256
