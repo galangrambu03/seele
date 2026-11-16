@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/images/seele_icon_app.jpg" alt="Seele Logo" width="120" style="border-radius: 20px;"/>
+  <img src="assets/images/seele_icon_app.png" alt="Seele Logo" width="120" style="border-radius: 20px;"/>
   <h1>Seele</h1>
   <p><b>Smart Discord Quest Manager & Dashboard</b></p>
 
