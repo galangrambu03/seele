@@ -40,16 +40,38 @@ jobs:
           flutter-version: '3.50.0'
       - run: flutter pub get
       - run: flutter build windows --release
-      # Zip folder Windows agar mudah didownload
       - run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath seele-windows.zip
       - uses: actions/upload-artifact@v4
         with:
           name: windows-exe
           path: seele-windows.zip
 
+  build_ios:
+    name: Build iOS (Unsigned)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.50.0'
+      - run: flutter pub get
+      # Build tanpa code signing (cocok untuk side-loading via Sideloadly/AltStore)
+      - run: flutter build ios --release --no-codesign
+      # Zip file .app menjadi .ipa secara manual
+      - name: Package to IPA
+        run: |
+          mkdir -p Payload
+          mv build/ios/iphoneos/Runner.app Payload/
+          zip -r seele-ios.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: seele-ios.ipa
+
   create_release:
     name: Create Release
-    needs: [build_android, build_windows]
+    needs: [build_android, build_windows, build_ios]
     runs-on: ubuntu-latest
     steps:
       - name: Download APK
@@ -64,12 +86,19 @@ jobs:
           name: windows-exe
           path: artifacts/windows
 
+      - name: Download iOS IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-ipa
+          path: artifacts/ios
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             artifacts/android/app-release.apk
             artifacts/windows/seele-windows.zip
+            artifacts/ios/seele-ios.ipa
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
