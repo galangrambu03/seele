@@ -108,6 +108,14 @@ class _DashboardPageState extends State<DashboardPage> {
     return ListenableBuilder(
       listenable: widget.accountSession,
       builder: (context, child) {
+        if (!widget.accountSession.isConnected) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _questEngine?.stop();
+              _questRepository?.clearQuests();
+            }
+          });
+        }
         return LayoutBuilder(
           builder: (context, constraints) {
             final isDesktop = constraints.maxWidth >= 960;

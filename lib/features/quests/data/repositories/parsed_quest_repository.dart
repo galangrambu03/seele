@@ -213,6 +213,12 @@ class ParsedQuestRepository extends QuestRepository {
     syncUiQuestsFromEntities(entities);
   }
 
+    /// Mengosongkan daftar quest saat pengguna logout/disconnect.
+  void clearQuests() {
+    _setQuests([]);
+    _dataSourceLabel = 'Discord Live';
+  }
+
   QuestEntity _entityFromRaw(Map<String, dynamic> raw) {
     final rawId = raw['id']?.toString() ?? '';
     return QuestEntity(
