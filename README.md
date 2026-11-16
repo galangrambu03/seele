@@ -20,7 +20,6 @@
   &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="seele_asset/iPhone-14-PRO-localhost%20(3).png" width="200" style="border-radius: 12px;" />
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="seele_asset/iPhone-14-PRO-localhost.png" width="200" style="border-radius: 12px;" />
 </p>
 
 
