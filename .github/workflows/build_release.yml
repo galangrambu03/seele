@@ -3,10 +3,10 @@ name: Build & Release
 on:
   push:
     tags:
-      - 'v*' # Akan jalan otomatis jika kamu push tag seperti v1.0.0
+      - 'v*'
 
 permissions:
-  contents: write # Dibutuhkan untuk upload ke GitHub Releases
+  contents: write
 
 jobs:
   build_android:
@@ -46,7 +46,7 @@ jobs:
           name: windows-exe
           path: seele-windows.zip
 
-    build_ios:
+  build_ios:
     name: Build iOS (Unsigned)
     runs-on: macos-latest
     steps:
@@ -56,9 +56,7 @@ jobs:
           channel: 'stable'
           flutter-version: '3.50.0'
       - run: flutter pub get
-      # Tambahkan baris ini untuk generate folder ios/
       - run: flutter create . --platforms=ios
-      # Build tanpa code signing
       - run: flutter build ios --release --no-codesign
       - name: Package to IPA
         run: |
