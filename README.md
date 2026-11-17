@@ -76,6 +76,7 @@ To connect your account, Seele requires your Discord Authorization Token. This i
 ## ⚠️ Disclaimer & Terms of Use
 
 **USE AT YOUR OWN RISK.**
+**Please use IP Adress / Same Device While Starting the Quest using Seele, if not there's a risk to get banned!!**
 
 1. **Terms of Service Violation:** Using third-party automation tools, self-bots, or modified clients on a Discord account **strictly violates Discord's Terms of Service**. 
 2. **Risk of Ban:** By using Seele, your account is at risk of being flagged, restricted, or **permanently banned** by Discord's anti-abuse systems. 
