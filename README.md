@@ -25,9 +25,14 @@
 
 ## 📖 About Seele
 
-**"NOTE: for iOS you need to use sideloader for installing the app."**
+**Note: iOS users must use a sideloading tool to install the app.**
 
-**Seele** is a cross-platform Flutter-based quest manager for Discord (available on Android, Windows, and iOs). It provides a custom, dark-themed dashboard to monitor your active missions. Operating completely locally, the app fetches your quest data, automates the required tasks, and stores your credentials securely on the device without relying on any external server.
+
+**Seele** is a cross-platform Discord Quest Automation Manager built with Flutter.
+
+Designed to simplify the Discord Quest experience, Seele allows users to connect their Discord account, automatically discover active quests, monitor mission progress, and execute supported quest requirements through an integrated automation engine.
+
+Instead of manually completing repetitive quest tasks, Seele provides a centralized dashboard to manage and monitor your Discord Quests in one place.
 
 ## ✨ Key Features
 
